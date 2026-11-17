@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Black-and-white base. Colour is reserved for meaning: status pills, "new" markers,
+ * file types, avatars and destructive actions.
+ */
+:root {
+  --page: #fafafa;
+  --card: #ffffff;
+  --subtle: #f4f4f5;
+  --line: #e4e4e7;
+  --field: #8a8a8f;
+  --ink: #09090b;
+  --muted: #52525b;
+  --faint: #71717a;
+  --primary: #09090b;
+  --primary-hover: #27272a;
+  --on-primary: #ffffff;
+  --danger: #b91c1c;
+  --danger-soft: #fef2f2;
+  color-scheme: light;
+}
+
+.dark {
+  --page: #09090b;
+  --card: #131316;
+  --subtle: #1c1c20;
+  --line: #2a2a30;
+  --field: #6e6e76;
+  --ink: #f4f4f5;
+  --muted: #a1a1aa;
+  --faint: #8b8b94;
+  --primary: #fafafa;
+  --primary-hover: #e4e4e7;
+  --on-primary: #09090b;
+  --danger: #f87171;
+  --danger-soft: rgb(248 113 113 / 0.12);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-field: var(--field);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader Variable", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--page);
+}
+
+/* Rendered Markdown (topic notes and progress updates). */
+.prose-tb {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.prose-tb > * + * {
+  margin-top: 0.85em;
+}
+.prose-tb h1,
+.prose-tb h2,
+.prose-tb h3,
+.prose-tb h4 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.4em;
+}
+.prose-tb h1 { font-size: 1.5em; }
+.prose-tb h2 { font-size: 1.3em; }
+.prose-tb h3 { font-size: 1.15em; }
+.prose-tb h4 { font-size: 1em; }
+.prose-tb > :first-child { margin-top: 0; }
+.prose-tb a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.prose-tb a:hover { text-decoration-thickness: 2px; }
+.prose-tb ul { list-style: disc; padding-left: 1.4em; }
+.prose-tb ol { list-style: decimal; padding-left: 1.4em; }
+.prose-tb li + li { margin-top: 0.3em; }
+.prose-tb li > ul, .prose-tb li > ol { margin-top: 0.3em; }
+.prose-tb blockquote {
+  border-left: 3px solid var(--line);
+  padding-left: 1em;
+  color: var(--muted);
+}
+.prose-tb code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--subtle);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+.prose-tb pre {
+  background: var(--subtle);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.55;
+}
+.prose-tb pre code { background: none; padding: 0; }
+.prose-tb hr { border: 0; border-top: 1px solid var(--line); }
+.prose-tb img { max-width: 100%; border-radius: 8px; }
+.prose-tb table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 0.92em; }
+.prose-tb th, .prose-tb td { border: 1px solid var(--line); padding: 0.4em 0.7em; text-align: left; }
+.prose-tb th { background: var(--subtle); font-weight: 600; }
+.prose-tb input[type="checkbox"] { margin-right: 0.4em; }
+.prose-tb .contains-task-list { list-style: none; padding-left: 0.2em; }
