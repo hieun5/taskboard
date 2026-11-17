@@ -1,65 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
-import { BoardFilters } from "@/components/board-filters";
+import { BoardSearch } from "@/components/board-search";
 import { ChatIcon, ClipIcon, PlusIcon } from "@/components/icons";
 import { NewBadge, StatusPill } from "@/components/status";
 import { button } from "@/components/ui";
-import type { TopicStatus } from "@/db/schema";
 import { requireUser } from "@/lib/auth/dal";
 import { listTopics } from "@/lib/data/topics";
 import { plural, timeAgo } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Challenges" };
 
-const STATUSES = ["all", "open", "active", "wrapped_up"] as const;
-
-export default async function BoardPage({ searchParams }: PageProps<"/">) {
+export default async function BoardPage() {
   const user = await requireUser();
-  const sp = await searchParams;
-  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
-  const q = one(sp.q).slice(0, 100);
-  const status = (STATUSES as readonly string[]).includes(one(sp.status)) ? (one(sp.status) as (typeof STATUSES)[number]) : "all";
-  const sort = one(sp.sort) === "active" ? "active" : "newest";
-  const filtered = Boolean(q) || status !== "all";
-
-  const topics = await listTopics(user, { q, status: status as TopicStatus | "all", sort });
+  const topics = await listTopics(user);
   const now = new Date();
 
   return (
-    <div className="mx-auto max-w-[880px] px-4 pb-20 pt-10 sm:px-5 sm:pt-12">
-      <h1 className="font-serif text-[40px] font-medium leading-tight tracking-tight sm:text-[44px]">Challenges</h1>
-
-      <div className="mt-7">
-        <BoardFilters q={q} status={status} sort={sort} />
+    <div className="mx-auto max-w-[880px] px-4 pb-20 pt-4 sm:px-5 sm:pt-6">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-serif text-[40px] font-medium leading-tight tracking-tight sm:text-[44px]">Challenges</h1>
+        <Link href="/topics/new" className={button("primary", "md", "px-3 sm:px-4")} aria-label="New topic">
+          <PlusIcon size={16} />
+          <span className="hidden sm:inline">New topic</span>
+        </Link>
       </div>
 
-      <p className="mb-3 mt-6 text-sm text-muted" aria-live="polite">
-        {plural(topics.length, "topic")}
-        {filtered && " found"}
-      </p>
+      <div className="mt-6">
+        <BoardSearch />
+      </div>
+
+      <p className="mb-3 mt-6 text-sm text-muted">{plural(topics.length, "topic")}</p>
 
       {topics.length === 0 ? (
-        filtered ? (
-          <div className="rounded-2xl border border-dashed border-line bg-card px-6 py-12 text-center">
-            <p className="font-serif text-2xl">No topics match</p>
-            <p className="mt-2 text-[15px] text-muted">Try a different word, or show every status.</p>
-            <Link href="/" className={button("secondary", "md", "mt-5")}>
-              Clear filters
-            </Link>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-line bg-card px-6 py-14 text-center">
-            <p className="font-serif text-2xl">Nothing on the board yet</p>
-            <p className="mx-auto mt-2 max-w-sm text-[15px] text-muted">
-              Post the first topic: say what needs doing and what done looks like, and others can add progress underneath.
-            </p>
-            <Link href="/topics/new" className={button("primary", "md", "mt-6")}>
-              <PlusIcon size={16} />
-              Post a topic
-            </Link>
-          </div>
-        )
+        <div className="rounded-2xl border border-dashed border-line bg-card px-6 py-14 text-center">
+          <p className="font-serif text-2xl">Nothing on the board yet</p>
+          <p className="mx-auto mt-2 max-w-sm text-[15px] text-muted">
+            Post the first topic: say what needs doing and what done looks like, and others can add progress underneath.
+          </p>
+          <Link href="/topics/new" className={button("primary", "md", "mt-6")}>
+            <PlusIcon size={16} />
+            Post a topic
+          </Link>
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {topics.map((t) => (

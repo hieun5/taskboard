@@ -10,7 +10,7 @@ import { markRead } from "./reads";
 const t = schema.topics;
 const u = schema.users;
 
-export type BoardFilter = { q?: string; status?: TopicStatus | "all"; sort?: "newest" | "active" };
+export type BoardFilter = { q?: string; status?: TopicStatus | "all"; sort?: "newest" | "active"; limit?: number };
 
 export type BoardTopic = {
   id: string;
@@ -25,6 +25,9 @@ export type BoardTopic = {
   files: number;
   unread: boolean;
 };
+
+/** What the board search popup gets back from /api/topics/search. */
+export type TopicSearchResult = Pick<BoardTopic, "id" | "title" | "goal" | "status" | "unread">;
 
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (m) => `\\${m}`);
 
@@ -55,7 +58,7 @@ export async function listTopics(viewer: User, filter: BoardFilter = {}): Promis
     .innerJoin(u, eq(u.id, t.authorId))
     .where(where.length ? and(...where) : undefined)
     .orderBy(filter.sort === "active" ? desc(t.lastActivityAt) : desc(t.createdAt))
-    .limit(300);
+    .limit(Math.min(filter.limit ?? 300, 300));
 
   // Your own new topic is never "new" to you.
   return rows.map((r) => ({ ...r, unread: r.unread && !(r.authorId === viewer.id && r.updates === 0) }));

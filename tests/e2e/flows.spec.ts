@@ -115,18 +115,22 @@ test("the author sees the new activity, gets an email and updates the status", a
   await expect(admin.getByRole("link", { name: /Repaint the back porch/ }).getByText("New activity")).toHaveCount(0);
 });
 
-test("search and status filters narrow the board", async () => {
+test("search expands from a button and shows matching topics in a popup", async () => {
   await admin.goto("/");
-  await admin.getByRole("searchbox", { name: "Search topics" }).fill("porch");
-  await expect(admin).toHaveURL(/q=porch/);
-  await expect(admin.getByText("1 topic found")).toBeVisible();
-  await admin.getByRole("searchbox", { name: "Search topics" }).fill("zzz");
-  await expect(admin.getByText("No topics match")).toBeVisible();
-  await admin.getByRole("link", { name: "Clear filters" }).click();
-  await admin.getByRole("button", { name: "Wrapped up" }).click();
-  await expect(admin.getByText("No topics match")).toBeVisible();
-  await admin.getByRole("button", { name: "Active" }).click();
-  await expect(admin.getByRole("link", { name: /Repaint the back porch/ })).toBeVisible();
+  const box = admin.getByRole("combobox", { name: "Search topics" });
+  await expect(box).not.toBeVisible();
+  await admin.getByRole("button", { name: "Search topics" }).click();
+  await expect(box).toBeFocused();
+  await box.fill("porch");
+  const results = admin.getByRole("listbox", { name: "Matching topics" });
+  await expect(results.getByRole("option")).toHaveCount(1);
+  await expect(results.getByRole("option", { name: /Repaint the back porch/ })).toBeVisible();
+  await box.fill("zzz");
+  await expect(admin.getByText("No topics match “zzz”")).toBeVisible();
+  await box.fill("porch");
+  await expect(results.getByRole("option", { name: /Repaint the back porch/ })).toBeVisible();
+  await box.press("Enter");
+  await expect(admin).toHaveURL(/\/topics\/[0-9a-f-]+$/);
 });
 
 test("members edit and delete their own progress", async () => {

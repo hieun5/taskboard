@@ -59,6 +59,18 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* Search results slide in one after another (see board-search.tsx). */
+@theme {
+  --animate-result-in: result-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes result-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
