@@ -116,12 +116,16 @@ export default async function TopicPage({ params }: PageProps<"/topics/[id]">) {
           <p className="mt-4 text-muted">No updates yet. Be the first to log progress below.</p>
         ) : (
           <ol className="relative mt-6">
-            <div aria-hidden="true" className="absolute bottom-8 left-[19px] top-5 w-0.5 bg-line" />
-            {entries.map((e) => {
+            {entries.map((e, i) => {
               const mine = e.authorId === user.id;
               return (
                 <li key={e.id} id={`entry-${e.id}`} className="relative flex scroll-mt-24 gap-4 pb-8">
-                  <Avatar id={e.authorId} name={e.authorName} className="ring-[3px] ring-page" />
+                  {/* Timeline segment from this avatar down to the next one, with a gap at both ends
+                      so the line never runs through the (translucent) avatars. */}
+                  {i < entries.length - 1 && (
+                    <div aria-hidden="true" className="absolute bottom-1.5 left-[19px] top-[46px] w-0.5 rounded-full bg-line" />
+                  )}
+                  <Avatar id={e.authorId} name={e.authorName} className="shrink-0" />
                   <div className="min-w-0 flex-1 pt-2">
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                       <span className="font-semibold">{e.authorName}</span>
@@ -136,7 +140,7 @@ export default async function TopicPage({ params }: PageProps<"/topics/[id]">) {
                             Edit
                           </Link>
                           <form action={deleteProgressAction.bind(null, e.id)}>
-                            <SubmitButton variant="danger" size="sm" pendingText="Deleting…" confirm="Delete this update and its files?">
+                            <SubmitButton variant="danger" size="sm" pendingText="Deleting…" confirm="This update and any files attached to it will be deleted. This can't be undone.">
                               Delete
                             </SubmitButton>
                           </form>

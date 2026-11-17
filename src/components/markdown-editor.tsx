@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { BoldIcon, CheckListIcon, HeadingIcon, ItalicIcon, LinkIcon, ListIcon } from "./icons";
+import { BoldIcon, CheckListIcon, HeadingIcon, ItalicIcon, LinkIcon, ListIcon, UploadIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { input } from "./ui";
 
@@ -32,9 +32,14 @@ const TOOLS: Tool[] = [
   },
 ];
 
+const hasFiles = (e: DragEvent | React.DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+
 /**
  * Plain Markdown textarea with a small formatting toolbar and a Write/Preview switch.
  * Submits as an ordinary form field called `name`.
+ *
+ * With `onDropFiles`, the box also takes files: dragging files anywhere over the page
+ * highlights it as the place to drop them.
  */
 export function MarkdownEditor({
   name,
@@ -47,6 +52,9 @@ export function MarkdownEditor({
   error,
   hideLabel,
   autoFocus,
+  header,
+  toolbarEnd,
+  onDropFiles,
 }: {
   name: string;
   label: string;
@@ -58,11 +66,58 @@ export function MarkdownEditor({
   error?: string;
   hideLabel?: boolean;
   autoFocus?: boolean;
+  /** Shown at the left of the Write/Preview row (e.g. the form's heading). */
+  header?: React.ReactNode;
+  /** Extra toolbar buttons, after the formatting tools (e.g. attach files). */
+  toolbarEnd?: React.ReactNode;
+  /** Makes the box a drop target for files. */
+  onDropFiles?: (files: FileList) => void;
 }) {
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState(defaultValue);
   const [tab, setTab] = useState<"write" | "preview">("write");
+  // "page": files are being dragged somewhere over the window; "box": right over this box.
+  const [fileDrag, setFileDrag] = useState<"none" | "page" | "box">("none");
+  const acceptsFiles = Boolean(onDropFiles);
+
+  useEffect(() => {
+    if (!acceptsFiles) return;
+    let depth = 0; // dragenter/leave fire for every child element, so count them.
+    const enter = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      depth++;
+      setFileDrag((d) => (d === "none" ? "page" : d));
+    };
+    const leave = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) setFileDrag("none");
+    };
+    // Dropping outside the box would make the browser open the file and leave the page.
+    const over = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+    };
+    const end = (e: DragEvent) => {
+      if (e.type === "drop" && hasFiles(e)) e.preventDefault();
+      depth = 0;
+      setFileDrag("none");
+    };
+    window.addEventListener("dragenter", enter);
+    window.addEventListener("dragleave", leave);
+    window.addEventListener("dragover", over);
+    window.addEventListener("drop", end);
+    window.addEventListener("dragend", end);
+    return () => {
+      window.removeEventListener("dragenter", enter);
+      window.removeEventListener("dragleave", leave);
+      window.removeEventListener("dragover", over);
+      window.removeEventListener("drop", end);
+      window.removeEventListener("dragend", end);
+    };
+  }, [acceptsFiles]);
 
   const applyTool = (tool: Tool) => {
     const el = ref.current;
@@ -80,7 +135,8 @@ export function MarkdownEditor({
 
   return (
     <div>
-      <div className="mb-1.5 flex flex-wrap items-end justify-between gap-2">
+      <div className={cn("mb-1.5 flex flex-wrap justify-between gap-2", header ? "items-center" : "items-end")}>
+        {header}
         <label htmlFor={id} className={cn("text-sm font-semibold", hideLabel && "sr-only")}>
           {label}
         </label>
@@ -103,7 +159,43 @@ export function MarkdownEditor({
         </div>
       </div>
 
-      <div className={cn("overflow-hidden rounded-lg border bg-card", error ? "border-danger" : "border-field")}>
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-lg border bg-card transition-[border-color,box-shadow] duration-200",
+          error ? "border-danger" : "border-field",
+          fileDrag === "page" && "border-ink/60 ring-4 ring-ink/10",
+          fileDrag === "box" && "border-ink ring-4 ring-ink/20",
+        )}
+        onDragEnter={acceptsFiles ? (e) => hasFiles(e) && setFileDrag("box") : undefined}
+        onDragOver={
+          acceptsFiles
+            ? (e) => {
+                if (!hasFiles(e)) return;
+                e.preventDefault();
+                e.stopPropagation(); // keep the window handler from refusing the drop here
+                e.dataTransfer.dropEffect = "copy";
+                if (fileDrag !== "box") setFileDrag("box");
+              }
+            : undefined
+        }
+        onDragLeave={
+          acceptsFiles
+            ? (e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFileDrag("page");
+              }
+            : undefined
+        }
+        onDrop={
+          acceptsFiles
+            ? (e) => {
+                if (!hasFiles(e)) return;
+                e.preventDefault();
+                setFileDrag("none");
+                if (e.dataTransfer.files.length) onDropFiles?.(e.dataTransfer.files);
+              }
+            : undefined
+        }
+      >
         {tab === "write" && (
           <div className="flex flex-wrap gap-0.5 border-b border-line px-1.5 py-1" aria-label="Formatting" role="toolbar">
             {TOOLS.map((tool) => (
@@ -118,6 +210,12 @@ export function MarkdownEditor({
                 <tool.Icon size={16} />
               </button>
             ))}
+            {toolbarEnd && (
+              <>
+                <span aria-hidden="true" className="mx-1 my-1.5 w-px self-stretch bg-line" />
+                {toolbarEnd}
+              </>
+            )}
           </div>
         )}
         <textarea
@@ -136,6 +234,19 @@ export function MarkdownEditor({
         {tab === "preview" && (
           <div className="min-h-32 px-4 py-3">
             {value.trim() ? <Markdown>{value}</Markdown> : <p className="text-muted">Nothing to preview yet.</p>}
+          </div>
+        )}
+        {acceptsFiles && (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-card/85 text-sm font-semibold text-ink backdrop-blur-[1px]",
+              "transition-opacity duration-200 motion-reduce:transition-none",
+              fileDrag === "none" ? "opacity-0" : "opacity-100",
+            )}
+          >
+            <UploadIcon size={22} className={cn("transition-transform duration-200", fileDrag === "box" && "-translate-y-0.5 scale-110")} />
+            Drop files to attach
           </div>
         )}
       </div>

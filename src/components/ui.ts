@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "destructive";
 type Size = "sm" | "md";
 
 const base =
@@ -10,6 +10,7 @@ const variants: Record<Variant, string> = {
   secondary: "border border-line bg-card text-ink hover:bg-subtle",
   ghost: "text-muted hover:bg-subtle hover:text-ink",
   danger: "text-danger hover:bg-danger-soft",
+  destructive: "bg-danger text-on-primary hover:opacity-90",
 };
 const sizes: Record<Size, string> = {
   sm: "min-h-9 px-3 text-sm",

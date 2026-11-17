@@ -12,6 +12,7 @@ import { MarkdownEditor } from "./markdown-editor";
 import { STATUS_META, STATUS_ORDER } from "./status";
 import { SubmitButton } from "./submit-button";
 import { Uploader } from "./uploader";
+import { cn } from "@/lib/cn";
 import { button, card, input, label } from "./ui";
 
 export type TopicDefaults = { title: string; task: string; goal: string; bodyMd: string; status: TopicStatus };
@@ -23,6 +24,7 @@ export function TopicForm({
   maxMb,
   cancelHref,
   submitLabel,
+  className,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   defaults: TopicDefaults;
@@ -30,18 +32,19 @@ export function TopicForm({
   maxMb: number;
   cancelHref: string;
   submitLabel: string;
+  className?: string;
 }) {
   const [state, formAction] = useActionState(action, {});
   const [uploading, setUploading] = useState(false);
   const v = { ...defaults, ...state.values } as TopicDefaults;
 
   return (
-    <form action={formAction} className={`${card} flex flex-col gap-6 p-5 sm:p-7`}>
+    <form action={formAction} className={cn(card, "flex flex-col gap-6 p-5 sm:p-7", className)}>
       <FormError>{state.error}</FormError>
 
       <div>
         <label htmlFor="title" className={label}>
-          Title <span className="font-normal text-muted">(required)</span>
+          Title
         </label>
         <input
           id="title"
@@ -50,14 +53,13 @@ export function TopicForm({
           key={`title-${state.values?.title ?? ""}`}
           required
           maxLength={LIMITS.title}
-          placeholder="e.g. Fix the squeaky garage door"
           className={`${input} text-[17px]`}
         />
       </div>
 
       <div>
         <label htmlFor="task" className={label}>
-          Task <span className="font-normal text-muted">(required)</span>
+          Task
         </label>
         <textarea
           id="task"
@@ -67,14 +69,13 @@ export function TopicForm({
           key={`task-${state.values?.task ?? ""}`}
           required
           maxLength={LIMITS.task}
-          placeholder="What needs doing?"
           className={`${input} resize-y leading-relaxed`}
         />
       </div>
 
       <div>
         <label htmlFor="goal" className={label}>
-          Goal <span className="font-normal text-muted">(required)</span>
+          Goal
         </label>
         <input
           id="goal"
@@ -83,7 +84,6 @@ export function TopicForm({
           key={`goal-${state.values?.goal ?? ""}`}
           required
           maxLength={LIMITS.goal}
-          placeholder="What does done look like?"
           className={input}
         />
       </div>
@@ -94,8 +94,6 @@ export function TopicForm({
         defaultValue={v.bodyMd}
         rows={9}
         maxLength={LIMITS.body}
-        placeholder="Details, links, anything that helps."
-        hint="Use the toolbar for bold, lists and links, or write Markdown directly."
       />
 
       <fieldset>
@@ -119,7 +117,7 @@ export function TopicForm({
 
       <div className="flex flex-wrap items-center justify-end gap-2.5 border-t border-line pt-5">
         {uploading && <span className="mr-auto text-sm text-muted">Waiting for uploads to finish…</span>}
-        <Link href={cancelHref} className={button("secondary")}>
+        <Link href={cancelHref} transitionTypes={["close-form"]} className={button("secondary")}>
           Cancel
         </Link>
         <SubmitButton pendingText="Saving…" disabled={uploading}>

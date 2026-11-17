@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useImperativeHandle, useRef, useState } from "react";
 import { finishUploadAction, removeAttachmentAction, startUploadAction } from "@/app/actions/uploads";
 import { cn } from "@/lib/cn";
 import { ACCEPT_ATTRIBUTE, formatBytes, kindForMime } from "@/lib/files";
@@ -33,6 +33,9 @@ function put(url: string, headers: Record<string, string>, file: File, onProgres
   return { xhr, done };
 }
 
+/** Lets a parent (e.g. the progress composer) open the file picker or hand over dropped files. */
+export type UploaderHandle = { addFiles: (files: FileList | File[]) => void; openPicker: () => void };
+
 /**
  * Drag-and-drop uploader. Files go straight to storage through short-lived signed URLs;
  * finished uploads are submitted with the surrounding form as `attachmentIds`.
@@ -42,13 +45,16 @@ export function Uploader({
   maxMb,
   label = "Attachments",
   onBusyChange,
-  compact,
+  bare,
+  ref,
 }: {
   name?: string;
   maxMb: number;
   label?: string;
   onBusyChange?: (busy: boolean) => void;
-  compact?: boolean;
+  /** Only the list of picked files; the parent supplies the drop target and picker button (via `ref`). */
+  bare?: boolean;
+  ref?: React.Ref<UploaderHandle>;
 }) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +97,80 @@ export function Uploader({
     if (item.id) void removeAttachmentAction(item.id);
   };
 
+  useImperativeHandle(ref, () => ({ addFiles, openPicker: () => inputRef.current?.click() }));
+
+  const fileList =
+    items.length > 0 ? (
+      <ul className={cn("space-y-2", !bare && "mt-3")} aria-live="polite">
+        {items.map((item) => {
+          const kind = item.mime ? kindForMime(item.mime) : null;
+          return (
+            <li key={item.key} className="flex items-center gap-3 rounded-xl border border-line bg-card p-2">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold",
+                  kind ? KIND_STYLE[kind].cls : "bg-subtle text-muted",
+                )}
+              >
+                {kind === "image" ? <ImageIcon size={16} /> : kind === "pdf" ? "PDF" : <FileIcon size={16} />}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate text-sm font-semibold">{item.name}</span>
+                {item.state === "uploading" ? (
+                  <span className="flex items-center gap-2.5">
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-subtle">
+                      <span className="block h-full bg-ink transition-[width]" style={{ width: `${Math.round(item.progress * 100)}%` }} />
+                    </span>
+                    <span className="text-[13px] tabular-nums text-muted">{Math.round(item.progress * 100)}%</span>
+                  </span>
+                ) : item.state === "error" ? (
+                  <span className="text-[13px] font-medium text-danger">{item.error}</span>
+                ) : (
+                  <span className="text-[13px] text-muted">{formatBytes(item.size)} · ready</span>
+                )}
+              </span>
+              {item.state === "done" && item.id && <input type="hidden" name={name} value={item.id} />}
+              <button
+                type="button"
+                onClick={() => remove(item)}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-subtle hover:text-ink"
+                aria-label={item.state === "uploading" ? `Cancel upload of ${item.name}` : `Remove ${item.name}`}
+              >
+                <XIcon size={18} />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    ) : null;
+
+  const fileInput = (
+    <input
+      ref={inputRef}
+      id={inputId}
+      type="file"
+      multiple
+      accept={ACCEPT_ATTRIBUTE}
+      className="sr-only"
+      tabIndex={-1}
+      aria-label="Choose files to attach"
+      onChange={(e) => {
+        if (e.target.files) addFiles(e.target.files);
+        e.target.value = "";
+      }}
+    />
+  );
+
+  if (bare) {
+    return (
+      <div>
+        {fileInput}
+        {fileList}
+      </div>
+    );
+  }
+
   return (
     <div>
       <span className="mb-1.5 block text-sm font-semibold">{label}</span>
@@ -106,12 +186,11 @@ export function Uploader({
           if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border-[1.5px] border-dashed text-sm text-muted transition-colors",
-          compact ? "px-3.5 py-2" : "flex-col justify-center px-5 py-6 text-center",
+          "flex flex-col flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-xl border-[1.5px] border-dashed px-5 py-6 text-center text-sm text-muted transition-colors",
           dragging ? "border-ink bg-subtle" : "border-line bg-page",
         )}
       >
-        <UploadIcon size={compact ? 18 : 22} />
+        <UploadIcon size={22} />
         <span>
           Drag files here or{" "}
           <button
@@ -122,67 +201,11 @@ export function Uploader({
             browse
           </button>
         </span>
-        <span className={cn("text-[13px]", compact && "sm:ml-auto")}>PDFs, images, documents · up to {maxMb} MB each</span>
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          multiple
-          accept={ACCEPT_ATTRIBUTE}
-          className="sr-only"
-          tabIndex={-1}
-          aria-label="Choose files to attach"
-          onChange={(e) => {
-            if (e.target.files) addFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
+        <span className="text-[13px]">PDFs, images, documents · up to {maxMb} MB each</span>
+        {fileInput}
       </div>
 
-      {items.length > 0 && (
-        <ul className="mt-3 space-y-2" aria-live="polite">
-          {items.map((item) => {
-            const kind = item.mime ? kindForMime(item.mime) : null;
-            return (
-              <li key={item.key} className="flex items-center gap-3 rounded-xl border border-line bg-card p-2">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold",
-                    kind ? KIND_STYLE[kind].cls : "bg-subtle text-muted",
-                  )}
-                >
-                  {kind === "image" ? <ImageIcon size={16} /> : kind === "pdf" ? "PDF" : <FileIcon size={16} />}
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="truncate text-sm font-semibold">{item.name}</span>
-                  {item.state === "uploading" ? (
-                    <span className="flex items-center gap-2.5">
-                      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-subtle">
-                        <span className="block h-full bg-ink transition-[width]" style={{ width: `${Math.round(item.progress * 100)}%` }} />
-                      </span>
-                      <span className="text-[13px] tabular-nums text-muted">{Math.round(item.progress * 100)}%</span>
-                    </span>
-                  ) : item.state === "error" ? (
-                    <span className="text-[13px] font-medium text-danger">{item.error}</span>
-                  ) : (
-                    <span className="text-[13px] text-muted">{formatBytes(item.size)} · ready</span>
-                  )}
-                </span>
-                {item.state === "done" && item.id && <input type="hidden" name={name} value={item.id} />}
-                <button
-                  type="button"
-                  onClick={() => remove(item)}
-                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-subtle hover:text-ink"
-                  aria-label={item.state === "uploading" ? `Cancel upload of ${item.name}` : `Remove ${item.name}`}
-                >
-                  <XIcon size={18} />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {fileList}
     </div>
   );
 }

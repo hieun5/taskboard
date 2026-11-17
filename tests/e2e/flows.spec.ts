@@ -115,22 +115,21 @@ test("the author sees the new activity, gets an email and updates the status", a
   await expect(admin.getByRole("link", { name: /Repaint the back porch/ }).getByText("New activity")).toHaveCount(0);
 });
 
-test("search expands from a button and shows matching topics in a popup", async () => {
+test("search expands from a button and filters the board", async () => {
   await admin.goto("/");
-  const box = admin.getByRole("combobox", { name: "Search topics" });
-  await expect(box).not.toBeVisible();
+  const box = admin.getByRole("searchbox", { name: "Search topics" });
+  await expect(box).toBeHidden();
   await admin.getByRole("button", { name: "Search topics" }).click();
   await expect(box).toBeFocused();
   await box.fill("porch");
-  const results = admin.getByRole("listbox", { name: "Matching topics" });
-  await expect(results.getByRole("option")).toHaveCount(1);
-  await expect(results.getByRole("option", { name: /Repaint the back porch/ })).toBeVisible();
+  await expect(admin).toHaveURL(/q=porch/);
+  await expect(admin.getByText("1 topic found")).toBeVisible();
+  await expect(admin.getByRole("link", { name: /Repaint the back porch/ })).toBeVisible();
   await box.fill("zzz");
-  await expect(admin.getByText("No topics match “zzz”")).toBeVisible();
-  await box.fill("porch");
-  await expect(results.getByRole("option", { name: /Repaint the back porch/ })).toBeVisible();
-  await box.press("Enter");
-  await expect(admin).toHaveURL(/\/topics\/[0-9a-f-]+$/);
+  await expect(admin.getByText("No topics match")).toBeVisible();
+  await admin.getByRole("link", { name: "Clear search" }).click();
+  await expect(admin.getByRole("link", { name: /Repaint the back porch/ })).toBeVisible();
+  await expect(box).toBeHidden();
 });
 
 test("members edit and delete their own progress", async () => {
@@ -140,8 +139,16 @@ test("members edit and delete their own progress", async () => {
   await uncle.getByRole("button", { name: "Save changes" }).click();
   await expect(uncle.getByText("Scraped everything.")).toBeVisible();
 
-  uncle.once("dialog", (d) => d.accept());
+  // Delete asks first; Cancel keeps the update.
   await uncle.getByRole("button", { name: "Delete" }).click();
+  const confirm = uncle.getByRole("dialog", { name: "Are you sure?" });
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole("button", { name: "Cancel" }).click();
+  await expect(confirm).toBeHidden();
+  await expect(uncle.getByText("Scraped everything.")).toBeVisible();
+
+  await uncle.getByRole("button", { name: "Delete" }).click();
+  await confirm.getByRole("button", { name: "Delete" }).click();
   await expect(uncle.getByText("No updates yet.")).toBeVisible();
 });
 
@@ -157,8 +164,8 @@ test("dark mode sticks after a reload", async () => {
 
 test("the author deletes the topic", async () => {
   await admin.goto(topicUrl);
-  admin.once("dialog", (d) => d.accept());
   await admin.getByRole("button", { name: "Delete" }).first().click();
+  await admin.getByRole("dialog", { name: "Are you sure?" }).getByRole("button", { name: "Delete" }).click();
   await expect(admin).toHaveURL(/\/$/);
   await expect(admin.getByText("Nothing on the board yet")).toBeVisible();
 });

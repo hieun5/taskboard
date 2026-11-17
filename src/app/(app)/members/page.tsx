@@ -72,7 +72,7 @@ export default async function MembersPage() {
                     </p>
                   </div>
                   <form action={revokeInviteAction.bind(null, i.email)}>
-                    <SubmitButton variant="danger" size="sm" pendingText="Removing…" confirm={`Remove the invite for ${i.email}?`}>
+                    <SubmitButton variant="danger" size="sm" pendingText="Removing…" confirm={`Remove the invite for ${i.email}?`} confirmLabel="Remove">
                       Remove invite
                     </SubmitButton>
                   </form>
