@@ -2,14 +2,25 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { env } from "@/env";
 import { devOutboxEnabled, readOutbox } from "@/lib/mail";
 
 export const metadata: Metadata = { title: "Dev mailbox" };
 
+/** Links to this site become relative, so they work from whatever address you're viewing it on. */
+function localHref(url: string) {
+  try {
+    const u = new URL(url);
+    return u.origin === new URL(env().APP_URL).origin ? u.pathname + u.search + u.hash : url;
+  } catch {
+    return url;
+  }
+}
+
 function linkify(text: string) {
   return text.split(/(https?:\/\/\S+)/g).map((part, i) =>
     /^https?:\/\//.test(part) ? (
-      <a key={i} href={part} className="break-all font-semibold underline underline-offset-2">
+      <a key={i} href={localHref(part)} className="break-all font-semibold underline underline-offset-2">
         {part}
       </a>
     ) : (
