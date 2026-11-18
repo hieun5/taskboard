@@ -7,6 +7,7 @@ import { ChatIcon, ClipIcon, PlusIcon } from "@/components/icons";
 import { NewBadge, StatusPill } from "@/components/status";
 import { button } from "@/components/ui";
 import { requireUser } from "@/lib/auth/dal";
+import { cn } from "@/lib/cn";
 import { listTopics } from "@/lib/data/topics";
 import { plural, timeAgo } from "@/lib/format";
 
@@ -75,7 +76,15 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
                   className="group flex h-full flex-col rounded-2xl border border-line bg-card px-5 py-5 transition-colors hover:border-ink/40 sm:px-6"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h2 className="min-w-0 flex-1 font-serif text-2xl font-medium leading-snug tracking-tight group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
+                    {/* Wrapped-up topics are crossed off; the strike-through stays on hover instead of the underline. */}
+                    <h2
+                      className={cn(
+                        "min-w-0 flex-1 font-serif text-2xl font-medium leading-snug tracking-tight",
+                        t.status === "wrapped_up"
+                          ? "text-muted line-through decoration-1"
+                          : "group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4",
+                      )}
+                    >
                       {t.title}
                     </h2>
                     {/* Pinned top-right on every card; "New activity" stacks above the status. */}
