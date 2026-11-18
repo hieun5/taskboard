@@ -67,18 +67,19 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
           </div>
         ) : (
           // Re-keyed per search so the cards animate in, one after another, each time the results change.
-          <ul key={q} className="flex flex-col gap-3">
+          <ul key={q} className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {topics.map((t, i) => (
               <li key={t.id} className="animate-result-in motion-reduce:animate-none" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
                 <Link
                   href={`/topics/${t.id}`}
-                  className="group block rounded-2xl border border-line bg-card px-5 py-5 transition-colors hover:border-ink/40 sm:px-6"
+                  className="group flex h-full flex-col rounded-2xl border border-line bg-card px-5 py-5 transition-colors hover:border-ink/40 sm:px-6"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-                    <h2 className="min-w-0 flex-[1_1_280px] font-serif text-2xl font-medium leading-snug tracking-tight group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4 sm:text-[26px]">
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="min-w-0 flex-1 font-serif text-2xl font-medium leading-snug tracking-tight group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">
                       {t.title}
                     </h2>
-                    <div className="flex items-center gap-2">
+                    {/* Pinned top-right on every card; "New activity" stacks above the status. */}
+                    <div className="mt-1 flex shrink-0 flex-col items-end gap-1.5">
                       {t.unread && <NewBadge>{t.updates > 0 ? "New activity" : "New"}</NewBadge>}
                       <StatusPill status={t.status} />
                     </div>
@@ -86,7 +87,8 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
                   <p className="mt-2.5 text-base leading-relaxed text-muted">
                     <span className="font-semibold text-ink">Goal:</span> {t.goal}
                   </p>
-                  <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted">
+                  {/* mt-auto keeps the author/updates row at the bottom, so cards side by side line up. */}
+                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-4 text-sm text-muted">
                     <span className="inline-flex items-center gap-2 font-medium text-ink">
                       <Avatar id={t.authorId} name={t.authorName} size="xs" />
                       {t.authorName}
