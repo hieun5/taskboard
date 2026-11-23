@@ -21,7 +21,7 @@ export default async function NewTopicPage() {
         <div className="mt-8">
           <TopicForm
             action={createTopicAction}
-            defaults={{ title: "", task: "", goal: "", bodyMd: "", status: "open" }}
+            defaults={{ title: "", task: "", goal: "", bodyMd: "", status: "active" }}
             maxMb={env().MAX_UPLOAD_MB}
             cancelHref="/"
             submitLabel="Post topic"

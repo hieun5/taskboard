@@ -18,7 +18,7 @@ export const topicInput = (over: Record<string, string> = {}) => ({
   task: "Oil the rollers",
   goal: "It opens quietly",
   bodyMd: "Some **notes**",
-  status: "open",
+  status: "active",
   ...over,
 });
 

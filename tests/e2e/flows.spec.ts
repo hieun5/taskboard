@@ -108,10 +108,10 @@ test("the author sees the new activity, gets an email and updates the status", a
 
   await card.click();
   await expect(admin.getByText("Scraped the railings.")).toBeVisible();
-  await admin.locator("#topic-status").selectOption("active");
+  await admin.locator("#topic-status").selectOption("done");
   await expect(admin.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
   await admin.goto("/");
-  await expect(admin.getByRole("link", { name: /Repaint the back porch/ }).getByText("Active", { exact: true })).toBeVisible();
+  await expect(admin.getByRole("link", { name: /Repaint the back porch/ }).getByText("Done", { exact: true })).toBeVisible();
   await expect(admin.getByRole("link", { name: /Repaint the back porch/ }).getByText("New activity")).toHaveCount(0);
 });
 

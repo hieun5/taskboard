@@ -31,8 +31,8 @@ try {
     [uncle.id, "Repaint the back porch before winter", "Scrape, prime and repaint the back porch floor and railings.", "Done before Dec 15, with no bare wood showing.",
       "The plan is to get the porch done before the first real cold snap.\n\nOrder of work:\n\n- Scrape loose paint and sand the railings\n- Replace any soft boards (check under the bench)\n- One coat of primer, then two coats of porch enamel", "active", 72],
     [me.id, "Learn to cook phở from scratch", "Make the broth, noodles and toppings without shortcuts.", "One pot good enough to serve at New Year.", "", "active", 120],
-    [me.id, "Plan the summer family trip", "Collect dates and ideas from everyone.", "Pick dates and a place everyone can make.", "", "open", 190],
-    [uncle.id, "Set up mesh Wi-Fi at Grandma's house", "Install the mesh kit and test every room.", "Strong signal in every room, including the garage.", "", "wrapped_up", 480],
+    [me.id, "Plan the summer family trip", "Collect dates and ideas from everyone.", "Pick dates and a place everyone can make.", "", "active", 190],
+    [uncle.id, "Set up mesh Wi-Fi at Grandma's house", "Install the mesh kit and test every room.", "Strong signal in every room, including the garage.", "", "done", 480],
   ];
   for (const [author, title, task, goal, body, status, hours] of topics) {
     const [t] = await sql`

@@ -61,6 +61,6 @@ describe("topic validation", () => {
     expect(ok.success && ok.data.title).toBe("Hi");
     expect(topicInputSchema.safeParse({ title: " ", task: "t", goal: "g", bodyMd: "" }).success).toBe(false);
     expect(topicInputSchema.safeParse({ title: "x".repeat(141), task: "t", goal: "g", bodyMd: "" }).success).toBe(false);
-    expect(topicInputSchema.safeParse({ title: "x", task: "t", goal: "g", bodyMd: "", status: "done" }).success).toBe(false);
+    expect(topicInputSchema.safeParse({ title: "x", task: "t", goal: "g", bodyMd: "", status: "wrapped_up" }).success).toBe(false);
   });
 });

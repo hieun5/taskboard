@@ -26,15 +26,15 @@ describe("topics", () => {
     const id = await createTopic(author, topicInput());
 
     expect(await code(updateTopic(other, id, topicInput({ title: "Hijacked" })))).toBe("forbidden");
-    expect(await code(setTopicStatus(other, id, "wrapped_up"))).toBe("forbidden");
+    expect(await code(setTopicStatus(other, id, "done"))).toBe("forbidden");
     expect(await code(deleteTopic(other, id))).toBe("forbidden");
     expect((await getTopic(id)).title).toBe("Fix the garage door");
 
     await updateTopic(author, id, topicInput({ title: "Fixed title" }));
-    await setTopicStatus(author, id, "active");
+    await setTopicStatus(author, id, "done");
     const topic = await getTopic(id);
     expect(topic.title).toBe("Fixed title");
-    expect(topic.status).toBe("active");
+    expect(topic.status).toBe("done");
   });
 
   it("validates input on the server", async () => {
@@ -48,7 +48,7 @@ describe("topics", () => {
     const a = await makeUser("A");
     const b = await makeUser("B");
     const t1 = await createTopic(a, topicInput({ title: "Plant tomatoes zebra", status: "active" }));
-    await createTopic(a, topicInput({ title: "Clean gutters zebra", status: "open" }));
+    await createTopic(a, topicInput({ title: "Clean gutters zebra", status: "done" }));
 
     const found = await listTopics(b, { q: "zebra" });
     expect(found.map((t) => t.title).sort()).toEqual(["Clean gutters zebra", "Plant tomatoes zebra"]);

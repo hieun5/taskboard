@@ -5,7 +5,7 @@ others add **progress updates** underneath. Built for a handful of people, like 
 shared projects.
 
 - Magic-link sign-in (no passwords), invite-only
-- Topics with task, goal, Markdown notes, status (Open / Active / Wrapped up) and attachments
+- Topics with task, goal, Markdown notes, status (Active / Done) and attachments
 - Progress timeline with Markdown, files, edit and delete for your own posts
 - Search, status filters and "new since your last visit" markers
 - Email when someone adds progress to your topic (opt-out in Settings)

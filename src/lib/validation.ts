@@ -6,14 +6,14 @@ const trimmed = (label: string, max: number, required = true) => {
   return required ? base.min(1, `${label} is required.`) : base;
 };
 
-export const topicStatusSchema = z.enum(["open", "active", "wrapped_up"]);
+export const topicStatusSchema = z.enum(["active", "done"]);
 
 export const topicInputSchema = z.object({
   title: trimmed("Title", LIMITS.title),
   task: trimmed("Task", LIMITS.task),
   goal: trimmed("Goal", LIMITS.goal),
   bodyMd: trimmed("Notes", LIMITS.body, false),
-  status: topicStatusSchema.default("open"),
+  status: topicStatusSchema.default("active"),
 });
 export type TopicInput = z.infer<typeof topicInputSchema>;
 

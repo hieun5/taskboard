@@ -60,7 +60,7 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
-export const topicStatus = pgEnum("topic_status", ["open", "active", "wrapped_up"]);
+export const topicStatus = pgEnum("topic_status", ["active", "done"]);
 export type TopicStatus = (typeof topicStatus.enumValues)[number];
 
 export const topics = pgTable(
@@ -74,7 +74,7 @@ export const topics = pgTable(
     task: text("task").notNull(),
     goal: text("goal").notNull(),
     bodyMd: text("body_md").notNull().default(""),
-    status: topicStatus("status").notNull().default("open"),
+    status: topicStatus("status").notNull().default("active"),
     createdAt: createdAt(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     /** Bumped when the topic is created or someone adds progress. Drives sorting by activity and "new" markers. */

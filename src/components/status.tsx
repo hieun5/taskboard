@@ -2,24 +2,19 @@ import type { TopicStatus } from "@/db/schema";
 import { cn } from "@/lib/cn";
 
 export const STATUS_META: Record<TopicStatus, { label: string; pill: string; dot: string }> = {
-  open: {
-    label: "Open",
-    pill: "bg-sky-50 text-sky-800 ring-sky-200 dark:bg-sky-400/10 dark:text-sky-300 dark:ring-sky-400/25",
-    dot: "bg-sky-500 dark:bg-sky-400",
-  },
   active: {
     label: "Active",
     pill: "bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/25",
     dot: "bg-emerald-500 dark:bg-emerald-400",
   },
-  wrapped_up: {
-    label: "Wrapped up",
+  done: {
+    label: "Done",
     pill: "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700",
     dot: "bg-zinc-400 dark:bg-zinc-500",
   },
 };
 
-export const STATUS_ORDER: TopicStatus[] = ["open", "active", "wrapped_up"];
+export const STATUS_ORDER: TopicStatus[] = ["active", "done"];
 
 export function StatusPill({ status, className }: { status: TopicStatus; className?: string }) {
   const meta = STATUS_META[status];

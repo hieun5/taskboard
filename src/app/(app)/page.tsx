@@ -76,11 +76,11 @@ export default async function BoardPage({ searchParams }: PageProps<"/">) {
                   className="group flex h-full flex-col rounded-2xl border border-line bg-card px-5 py-5 transition-colors hover:border-ink/40 sm:px-6"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    {/* Wrapped-up topics are crossed off; the strike-through stays on hover instead of the underline. */}
+                    {/* Done topics are crossed off; the strike-through stays on hover instead of the underline. */}
                     <h2
                       className={cn(
                         "min-w-0 flex-1 font-serif text-2xl font-medium leading-snug tracking-tight",
-                        t.status === "wrapped_up"
+                        t.status === "done"
                           ? "text-muted line-through decoration-1"
                           : "group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4",
                       )}
